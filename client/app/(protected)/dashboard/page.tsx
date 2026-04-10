@@ -162,29 +162,92 @@ export default function DashboardPage() {
   }, []);
 
   // We will wire this up to your new page in the next step!
-  const handleConfirmCreate = () => {
-    // For now, we will just log the settings and wait for your next prompt
-    console.log("Room Settings:", { pomodoroTime, chatDisabled, videoDisabled, coAdmin });
-    alert("Settings captured! Waiting for your redirect instructions.");
-    setIsCreateModalOpen(false);
+  // const handleConfirmCreate = () => {
+  //   // For now, we will just log the settings and wait for your next prompt
+  //   console.log("Room Settings:", { pomodoroTime, chatDisabled, videoDisabled, coAdmin });
+  //   alert("Settings captured! Waiting for your redirect instructions.");
+  //   setIsCreateModalOpen(false);
+  // };
+
+  // const handleJoinRoom = async (e: React.FormEvent) => {
+  //   e.preventDefault();
+  //   if (!joinCode) return;
+
+  //   setIsLoading(true);
+  //   const token = localStorage.getItem('token');
+
+  //   try {
+  //     const res = await fetch(`http://localhost:5000/api/rooms/${joinCode.toUpperCase()}`, {
+  //       headers: { 'Authorization': `Bearer ${token}` },
+  //     });
+
+  //     if (res.ok) {
+  //       router.push(`/room/${joinCode.toUpperCase()}`);
+  //     } else {
+  //       alert('Invalid Room Code!');
+  //       setIsLoading(false);
+  //     }
+  //   } catch (err) {
+  //     alert('Failed to connect to server.');
+  //     setIsLoading(false);
+  //   }
+  // };
+  // 🔥 UPDATED: Actually create the room via API with our settings
+  const handleConfirmCreate = async () => {
+    setIsLoading(true);
+    const token = localStorage.getItem('token');
+    
+    try {
+      const res = await fetch('http://localhost:5000/api/rooms', {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}` 
+        },
+        body: JSON.stringify({ 
+          pomodoroTime: pomodoroTime || 25, // Fallback to 25 if empty
+          chatDisabled, 
+          videoDisabled, 
+          coAdmin 
+        })
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        router.push(`/room/${data.roomId}`);
+      } else {
+        alert(data.error);
+        setIsLoading(false);
+      }
+    } catch (err) {
+      alert('Failed to connect to server.');
+      setIsLoading(false);
+    }
   };
 
+  // 🔥 UPDATED: Accept both "ABCDEF" and "http://localhost:3000/room/ABCDEF"
   const handleJoinRoom = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!joinCode) return;
-
+    
     setIsLoading(true);
     const token = localStorage.getItem('token');
 
+    // Smart parsing: Extract code if they pasted a full URL
+    let extractedCode = joinCode.trim();
+    if (extractedCode.includes('/room/')) {
+      extractedCode = extractedCode.split('/room/').pop() || extractedCode;
+    }
+
     try {
-      const res = await fetch(`http://localhost:5000/api/rooms/${joinCode.toUpperCase()}`, {
+      const res = await fetch(`http://localhost:5000/api/rooms/${extractedCode.toUpperCase()}`, {
         headers: { 'Authorization': `Bearer ${token}` },
       });
 
       if (res.ok) {
-        router.push(`/room/${joinCode.toUpperCase()}`);
+        router.push(`/room/${extractedCode.toUpperCase()}`);
       } else {
-        alert('Invalid Room Code!');
+        alert('Invalid Room Code or Link!');
         setIsLoading(false);
       }
     } catch (err) {
