@@ -176,7 +176,13 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
                 <button className="flex items-center justify-start gap-3 w-full p-2.5 rounded-lg hover:bg-zinc-800/50 text-zinc-300 hover:text-white transition-colors text-sm font-medium">
                   <HelpIcon /> Help
                 </button>
-                <button className="flex items-center justify-start gap-3 w-full p-2.5 rounded-lg hover:bg-zinc-800/50 text-zinc-300 hover:text-white transition-colors text-sm font-medium">
+                <button 
+                  onClick={() => {
+                    router.push('/docs');
+                    setIsProfileOpen(false);
+                  }}
+                  className="flex items-center justify-start gap-3 w-full p-2.5 rounded-lg hover:bg-zinc-800/50 text-zinc-300 hover:text-white transition-colors text-sm font-medium"
+                >
                   <DocsIcon /> Docs
                 </button>
                 
